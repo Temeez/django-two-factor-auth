@@ -55,11 +55,21 @@ class PhoneNumberForm(ModelForm):
 
 
 class DeviceValidationForm(forms.Form):
-    token = forms.IntegerField(label=_("Token"), min_value=1, max_value=int('9' * totp_digits()))
+    token = forms.RegexField(label=_("Token"),
+                             regex=r'^[0-9]*$',
+                             min_length=totp_digits(),
+                             max_length=totp_digits())
+    token.widget.attrs.update({
+        'autofocus': 'autofocus',
+        'inputmode': 'numeric',
+        'pattern': '[0-9]*',
+    })
 
     error_messages = {
         'invalid_token': _('Entered token is not valid.'),
     }
+
+    use_required_attribute = False
 
     def __init__(self, device, **args):
         super().__init__(**args)
@@ -85,11 +95,21 @@ class YubiKeyDeviceForm(DeviceValidationForm):
 
 
 class TOTPDeviceForm(forms.Form):
-    token = forms.IntegerField(label=_("Token"), min_value=0, max_value=int('9' * totp_digits()))
+    token = forms.RegexField(label=_("Token"),
+                             regex=r'^[0-9]*$',
+                             min_length=totp_digits(),
+                             max_length=totp_digits())
+    token.widget.attrs.update({
+        'autofocus': 'autofocus',
+        'inputmode': 'numeric',
+        'pattern': '[0-9]*',
+    })
 
     error_messages = {
         'invalid_token': _('Entered token is not valid.'),
     }
+
+    use_required_attribute = False
 
     def __init__(self, key, user, metadata=None, **kwargs):
         super().__init__(**kwargs)
@@ -110,7 +130,7 @@ class TOTPDeviceForm(forms.Form):
         return unhexlify(self.key.encode())
 
     def clean_token(self):
-        token = self.cleaned_data.get('token')
+        token = int(self.cleaned_data.get('token'))
         validated = False
         t0s = [self.t0]
         key = self.bin_key
@@ -139,10 +159,15 @@ class DisableForm(forms.Form):
 
 
 class AuthenticationTokenForm(OTPAuthenticationFormMixin, Form):
-    otp_token = forms.IntegerField(label=_("Token"), min_value=1,
-                                   max_value=int('9' * totp_digits()))
-
-    otp_token.widget.attrs.update({'autofocus': 'autofocus'})
+    otp_token = forms.RegexField(label=_("Token"),
+                                 regex=r'^[0-9]*$',
+                                 min_length=totp_digits(),
+                                 max_length=totp_digits())
+    otp_token.widget.attrs.update({
+        'autofocus': 'autofocus',
+        'inputmode': 'numeric',
+        'pattern': '[0-9]*',
+    })
 
     # Our authentication form has an additional submit button to go to the
     # backup token form. When the `required` attribute is set on an input
